@@ -1,0 +1,73 @@
+services:
+
+  # ── MCP Server ───────────────────────────────────────────────────────────────
+  civics-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: civics-mcp:latest
+    container_name: civics-mcp
+
+    # MCP over stdio: keep stdin open so the host process can pipe to it
+    stdin_open: true
+    tty: false
+
+    env_file:
+      - .env
+      # Required keys in .env:
+      #   GOOGLE_CIVIC_API_KEY
+      #   CONGRESS_GOV_API_KEY
+
+    environment:
+      # ── Data paths (inside the container) ─────────────────────────────────
+      CONGRESS_DATA_DIR: /data/congress
+      DB_JSON_PATH: /data/db.json
+      DB_SQLITE_PATH: /data/civics.db
+
+      # ── Feature flags ──────────────────────────────────────────────────────
+      ENABLE_DATABASE: ${ENABLE_DATABASE:-false}
+
+      NODE_ENV: production
+
+    volumes:
+      # Persist scraped congress data and DB files across restarts
+      - congress-data:/data/congress
+      - db-data:/data
+
+    restart: unless-stopped
+
+    # Resource limits — lightweight for a stdio MCP server
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+        reservations:
+          cpus: "0.1"
+          memory: 64M
+
+  # ── Optional: run the unitedstates scraper as a one-shot job ─────────────────
+  # Usage: docker compose run --rm usc-scraper legislators
+  #        docker compose run --rm usc-scraper bills --congress=118
+  usc-scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+    image: civics-mcp:latest
+    container_name: usc-scraper
+    profiles:
+      - scraper          # only starts when you explicitly include this profile
+    entrypoint: ["usc-run"]
+    command: ["legislators"]   # override at runtime
+    environment:
+      CONGRESS_DATA_DIR: /data/congress
+    volumes:
+      - congress-data:/data/congress
+
+volumes:
+  congress-data:
+    driver: local
+  db-data:
+    driver: local

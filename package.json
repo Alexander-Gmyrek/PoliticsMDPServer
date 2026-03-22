@@ -1,7 +1,7 @@
 {
   "name": "civics-mcp-server",
-  "version": "1.0.0",
-  "description": "MCP server for Google Civic, ProPublica Congress, unitedstates/congress, and optional DB",
+  "version": "1.1.0",
+  "description": "MCP server for Google Civic, Congress.gov, unitedstates/congress-legislators, and optional DB",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -13,11 +13,12 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.0",
     "better-sqlite3": "^9.4.3",
-    "node-fetch": "^3.3.2",
+    "express": "^4.19.2",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.8",
+    "@types/express": "^4.17.21",
     "@types/node": "^20.11.5",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

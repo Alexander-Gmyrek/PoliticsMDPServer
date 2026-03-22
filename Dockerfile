@@ -29,11 +29,11 @@ RUN npm install --omit=dev
 # Copy compiled JS from builder
 COPY --from=builder /app/dist ./dist
 
-# ── Startup script: fetches fresh legislator data then starts the MCP server ──
+# Startup script: refreshes legislator data then starts the MCP server
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# ── Data directories (mounted as volumes — persisted across restarts) ──────────
+# Data directories (mounted as volumes in local mode, ephemeral on Railway)
 RUN mkdir -p /data/congress/legislators /data
 
 # ── Runtime config defaults ────────────────────────────────────────────────────
@@ -44,8 +44,11 @@ ENV NODE_ENV=production \
     ENABLE_DATABASE=false \
     REFRESH_LEGISLATORS_ON_START=true
 
-# Healthcheck: confirm the compiled entry point exists
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+# PORT is set by Railway automatically — exposes HTTP/SSE when present
+EXPOSE 3000
+
+# Healthcheck works for both modes
+HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
   CMD node -e "require('fs').statSync('/app/dist/index.js')" || exit 1
 
 ENTRYPOINT ["/entrypoint.sh"]

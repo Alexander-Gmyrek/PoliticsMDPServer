@@ -223,7 +223,7 @@ router.post("/token", (req: Request, res: Response) => {
     return res.json({
       access_token: issueAccessToken(clientId, entry.scope),
       token_type: "Bearer",
-      expires_in: 3600,
+      expires_in: 3600*24*365,
       refresh_token: issueRefreshToken(clientId, entry.scope),
       scope: entry.scope,
     });
